@@ -32,8 +32,7 @@ class ScaffoldController extends Controller
 
     }
 
-    public
-    function store(Request $request)
+    public function store(Request $request)
     {
         $paths = [];
         $message = '';
@@ -85,8 +84,7 @@ class ScaffoldController extends Controller
         return $this->backWithSuccess($paths, $message);
     }
 
-    protected
-    function backWithException(\Exception $exception)
+    protected function backWithException(\Exception $exception)
     {
         $error = new MessageBag([
             'title' => 'Error',
@@ -96,8 +94,7 @@ class ScaffoldController extends Controller
         return back()->withInput()->with(compact('error'));
     }
 
-    protected
-    function backWithSuccess($paths, $message)
+    protected function backWithSuccess($paths, $message)
     {
         $messages = [];
 

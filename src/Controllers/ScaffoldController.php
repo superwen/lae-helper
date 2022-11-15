@@ -15,26 +15,25 @@ use Superwen\Admin\Helpers\Scaffold\ModelCreator;
 
 class ScaffoldController extends Controller
 {
-    public function index()
+    public function index(Content $content)
     {
-        return Admin::content(function (Content $content) {
-            $content->header('Scaffold');
+        $dbTypes = [
+            'string', 'integer', 'text', 'float', 'double', 'decimal', 'boolean', 'date', 'time',
+            'dateTime', 'timestamp', 'char', 'mediumText', 'longText', 'tinyInteger', 'smallInteger',
+            'mediumInteger', 'bigInteger', 'unsignedTinyInteger', 'unsignedSmallInteger', 'unsignedMediumInteger',
+            'unsignedInteger', 'unsignedBigInteger', 'enum', 'json', 'jsonb', 'dateTimeTz', 'timeTz',
+            'timestampTz', 'nullableTimestamps', 'binary', 'ipAddress', 'macAddress',
+        ];
+        $action = URL::current();
 
-            $dbTypes = [
-                'string', 'integer', 'text', 'float', 'double', 'decimal', 'boolean', 'date', 'time',
-                'dateTime', 'timestamp', 'char', 'mediumText', 'longText', 'tinyInteger', 'smallInteger',
-                'mediumInteger', 'bigInteger', 'unsignedTinyInteger', 'unsignedSmallInteger', 'unsignedMediumInteger',
-                'unsignedInteger', 'unsignedBigInteger', 'enum', 'json', 'jsonb', 'dateTimeTz', 'timeTz',
-                'timestampTz', 'nullableTimestamps', 'binary', 'ipAddress', 'macAddress',
-            ];
+        return
+            $content->header('Scaffold')
+                ->row(view('laravel-admin-helpers::scaffold', compact('dbTypes', 'action')));
 
-            $action = URL::current();
-
-            $content->row(view('laravel-admin-helpers::scaffold', compact('dbTypes', 'action')));
-        });
     }
 
-    public function store(Request $request)
+    public
+    function store(Request $request)
     {
         $paths = [];
         $message = '';
@@ -60,7 +59,7 @@ class ScaffoldController extends Controller
 
             // 3. Create migration.
             if (in_array('migration', $request->get('create'))) {
-                $migrationName = 'create_'.$request->get('table_name').'_table';
+                $migrationName = 'create_' . $request->get('table_name') . '_table';
 
                 $paths['migration'] = (new MigrationCreator(app('files')))->buildBluePrint(
                     $request->get('fields'),
@@ -86,28 +85,30 @@ class ScaffoldController extends Controller
         return $this->backWithSuccess($paths, $message);
     }
 
-    protected function backWithException(\Exception $exception)
+    protected
+    function backWithException(\Exception $exception)
     {
         $error = new MessageBag([
-            'title'   => 'Error',
+            'title' => 'Error',
             'message' => $exception->getMessage(),
         ]);
 
         return back()->withInput()->with(compact('error'));
     }
 
-    protected function backWithSuccess($paths, $message)
+    protected
+    function backWithSuccess($paths, $message)
     {
         $messages = [];
 
         foreach ($paths as $name => $path) {
-            $messages[] = ucfirst($name).": $path";
+            $messages[] = ucfirst($name) . ": $path";
         }
 
         $messages[] = "<br />$message";
 
         $success = new MessageBag([
-            'title'   => 'Success',
+            'title' => 'Success',
             'message' => implode('<br />', $messages),
         ]);
 

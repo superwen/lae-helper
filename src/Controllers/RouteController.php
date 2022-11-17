@@ -13,47 +13,50 @@ use Illuminate\Support\Str;
 
 class RouteController extends Controller
 {
-    public function index(Content $content)
+    public function index()
     {
-        $model = $this->getModel()->setRoutes($this->getRoutes());
-        return $content->body(Admin::grid($model, function (Grid $grid) {
-            $colors = [
-                'GET' => 'green',
-                'HEAD' => 'gray',
-                'POST' => 'blue',
-                'PUT' => 'yellow',
-                'DELETE' => 'red',
-                'PATCH' => 'aqua',
-                'OPTIONS' => 'light-blue',
-            ];
+        return Admin::content(function (Content $content) {
+            $model = $this->getModel()->setRoutes($this->getRoutes());
 
-            $grid->method()->map(function ($method) use ($colors) {
-                return "<span class=\"label bg-{$colors[$method]}\">$method</span>";
-            })->implode('&nbsp;');
+            $content->body(Admin::grid($model, function (Grid $grid) {
+                $colors = [
+                    'GET'    => 'green',
+                    'HEAD'   => 'gray',
+                    'POST'   => 'blue',
+                    'PUT'    => 'yellow',
+                    'DELETE' => 'red',
+                    'PATCH'  => 'aqua',
+                    'OPTIONS'=> 'light-blue',
+                ];
 
-            $grid->uri()->display(function ($uri) {
-                return preg_replace('/\{.+?\}/', '<code>$0</span>', $uri);
-            })->sortable();
+                $grid->method()->map(function ($method) use ($colors) {
+                    return "<span class=\"label bg-{$colors[$method]}\">$method</span>";
+                })->implode('&nbsp;');
 
-            $grid->name();
+                $grid->uri()->display(function ($uri) {
+                    return preg_replace('/\{.+?\}/', '<code>$0</span>', $uri);
+                })->sortable();
 
-            $grid->action()->display(function ($uri) {
-                return preg_replace('/@.+/', '<code>$0</code>', $uri);
-            });
-            $grid->middleware()->badge('yellow');
+                $grid->name();
 
-            $grid->disablePagination();
-            $grid->disableRowSelector();
-            $grid->disableActions();
-            $grid->disableCreation();
-            $grid->disableExport();
+                $grid->action()->display(function ($uri) {
+                    return preg_replace('/@.+/', '<code>$0</code>', $uri);
+                });
+                $grid->middleware()->badge('yellow');
 
-            $grid->filter(function ($filter) {
-                $filter->disableIdFilter();
-                $filter->equal('action');
-                $filter->equal('uri');
-            });
-        }));
+                $grid->disablePagination();
+                $grid->disableRowSelector();
+                $grid->disableActions();
+                $grid->disableCreation();
+                $grid->disableExport();
+
+                $grid->filter(function ($filter) {
+                    $filter->disableIdFilter();
+                    $filter->equal('action');
+                    $filter->equal('uri');
+                });
+            }));
+        });
     }
 
     protected function getModel()
@@ -128,13 +131,28 @@ class RouteController extends Controller
     protected function getRouteInformation(Route $route)
     {
         return [
-            'host' => $route->domain(),
-            'method' => $route->methods(),
-            'uri' => $route->uri(),
-            'name' => $route->getName(),
-            'action' => $route->getActionName(),
+            'host'       => $route->domain(),
+            'method'     => $route->methods(),
+            'uri'        => $route->uri(),
+            'name'       => $route->getName(),
+            'action'     => $route->getActionName(),
             'middleware' => $this->getRouteMiddleware($route),
         ];
+    }
+
+    /**
+     * Sort the routes by a given element.
+     *
+     * @param string $sort
+     * @param array  $routes
+     *
+     * @return array
+     */
+    protected function sortRoutes($sort, $routes)
+    {
+        return Arr::sort($routes, function ($route) use ($sort) {
+            return $route[$sort];
+        });
     }
 
     /**
@@ -148,21 +166,6 @@ class RouteController extends Controller
     {
         return collect($route->gatherMiddleware())->map(function ($middleware) {
             return $middleware instanceof \Closure ? 'Closure' : $middleware;
-        });
-    }
-
-    /**
-     * Sort the routes by a given element.
-     *
-     * @param string $sort
-     * @param array $routes
-     *
-     * @return array
-     */
-    protected function sortRoutes($sort, $routes)
-    {
-        return Arr::sort($routes, function ($route) use ($sort) {
-            return $route[$sort];
         });
     }
 }

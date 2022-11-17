@@ -13,8 +13,6 @@ class MigrationCreator extends BaseMigrationCreator
      */
     protected $bluePrint = '';
 
-    public $name;
-
     public function __construct(Filesystem $files, $customStubPath = null)
     {
         parent::__construct($files, $customStubPath);
@@ -32,18 +30,15 @@ class MigrationCreator extends BaseMigrationCreator
      */
     public function create($name, $path, $table = null, $create = true)
     {
-        $this->name = $name;
-
         $this->ensureMigrationDoesntAlreadyExist($name);
 
         $path = $this->getPath($name, $path);
 
         $stub = $this->files->get(__DIR__.'/stubs/create.stub');
 
-        $this->files->put($path, $this->populateStub($stub, $table));
+        $this->files->put($path, $this->populateStub($name, $stub, $table));
 
-        $this->firePostCreateHooks($table, $path);
-
+        $this->firePostCreateHooks($table);
 
         return $path;
     }
@@ -57,20 +52,13 @@ class MigrationCreator extends BaseMigrationCreator
      *
      * @return mixed
      */
-    protected function populateStub($stub, $table)
+    protected function populateStub($name, $stub, $table)
     {
-        // Here we will replace the table place-holders with the table specified by
-        // the developer, which is useful for quickly creating a tables creation
-        // or update migration from the console instead of typing it manually.
-        if (! is_null($table)) {
-            $stub = str_replace(
-                ['DummyClass', 'DummyTable', 'DummyStructure'],
-                [$this->getClassName($this->name), $table, $this->bluePrint],
-                $stub
-            );
-        }
-
-        return $stub;
+        return str_replace(
+            ['DummyClass', 'DummyTable', 'DummyStructure'],
+            [$this->getClassName($name), $table, $this->bluePrint],
+            $stub
+        );
     }
 
     /**
